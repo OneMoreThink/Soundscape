@@ -11,28 +11,67 @@ struct ARVisualizationView: View {
     @StateObject private var viewModel = ARVisualizationViewModel()
     
     var body: some View {
-        VStack {
-            // 진폭을 시각화하는 간단한 막대
-            Rectangle()
-                .fill(Color.blue)
-                .frame(width: CGFloat(viewModel.currentAmplitude) * 5000, height: 500)
-                .animation(.linear(duration: 0.1), value: viewModel.currentAmplitude)
-            
-            // 시작/정지 버튼
-            Button(action: {
-                viewModel.startAudioCapture()
-            }) {
-                Text("Start Capture")
-            }
-            .padding()
-            
-            // 에러 표시
-            if let error = viewModel.error {
-                Text("Error: \(error.localizedDescription)")
-                    .foregroundColor(.red)
+        ZStack{
+            // ARView
+            ARViewContainer(session: viewModel.arSystem.session)
+                .edgesIgnoringSafeArea(.all)
+            VStack {
+                Spacer()
+                debugPanel
+                    .padding()
+                    .background(Color.black.opacity(0.7))
+                    .cornerRadius(10)
+                    .padding()
             }
         }
-        .padding()
+        .alert("Error", isPresented: $viewModel.showErrorAlert) {
+            Button("OK") {
+                viewModel.dismissError()
+            }
+        } message: {
+            Text(viewModel.error?.localizedDescription ?? "Unknown error occurred")
+        }
+        .onAppear {
+            viewModel.startCapture()
+        }
+        .onDisappear {
+            viewModel.stopCapture()
+        }
+      
+    }
+    
+    private var debugPanel: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text("Visualization Debug")
+                .font(.headline)
+                .foregroundColor(.white)
+            
+            Text("Audio Amplitude: \(viewModel.currentAmplitude, specifier: "%.2f")")
+                .foregroundColor(.green)
+            
+            if let arData = viewModel.currentARData {
+                Group {
+                    Text("Camera Position:")
+                        .foregroundColor(.white)
+                    Text("X: \(arData.cameraTransform.columns.3.x)")
+                    Text("Y: \(arData.cameraTransform.columns.3.y)")
+                    Text("Z: \(arData.cameraTransform.columns.3.z)")
+                }
+                .foregroundColor(.green)
+                .font(.system(.body, design: .monospaced))
+                
+                Text("Detected Planes: \(arData.detectedPlanes.count)")
+                    .foregroundColor(.white)
+                
+                if let lightEstimate = arData.lightEstimate {
+                    Text("Light Intensity: \(lightEstimate.ambientIntensity)")
+                        .foregroundColor(.white)
+                }
+            } else {
+                Text("Waiting for AR data...")
+                    .foregroundColor(.yellow)
+            }
+        }
     }
 }
 

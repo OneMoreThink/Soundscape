@@ -10,9 +10,13 @@ import Foundation
 
 final class ARVisualizationViewModel: ObservableObject {
     @Published private(set) var currentAmplitude: Float = 0
+    @Published private(set) var currentARData: ARData?
+    
     @Published private(set) var error: Error?
+    @Published var showErrorAlert: Bool = false
     
     private let audioSystem = AudioSystem()
+    let arSystem = ARSystem()
     private var cancellables = Set<AnyCancellable>()
     
     init(){
@@ -30,17 +34,39 @@ final class ARVisualizationViewModel: ObservableObject {
                 }
             )
             .store(in: &cancellables)
+        
+        // AR 스트림 구독
+        arSystem.arStream
+            .receive(on: DispatchQueue.main)
+            .sink(
+                receiveCompletion: { [weak self] completion in
+                    if case .failure(let error) = completion {
+                        self?.error = error
+                    }
+                },
+                receiveValue: { [weak self] arData in
+                    self?.currentARData = arData
+                }
+            )
+            .store(in: &cancellables)
     }
     
-    func startAudioCapture() {
+    func startCapture() {
         do {
             try audioSystem.start()
+            try arSystem.start()
         } catch {
             self.error = error
         }
     }
     
-    func stopAudioCapture() {
+    func stopCapture() {
         audioSystem.stop()
+        arSystem.stop()
+    }
+    
+    func dismissError() {
+        showErrorAlert = false
+        error = nil
     }
 }
