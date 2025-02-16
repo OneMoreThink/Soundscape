@@ -31,14 +31,18 @@ class RenderingEngine {
     }
     
     private func createParticleNode() -> SCNNode {
-        // 매우 단순한 큐브 사용
-        let geometry = SCNBox(width: 0.3, height: 0.3, length: 0.3, chamferRadius: 0)
+        // 눈송이용 평면 크기 증가
+        let size: CGFloat = 0.3  // 크기 증가
+        let geometry = SCNPlane(width: size, height: size)
         let material = SCNMaterial()
         
-        // 밝은 빨간색
-        material.diffuse.contents = UIColor.red
-        material.emission.contents = UIColor.red
+        // 더 밝은 색상으로 설정
+        let snowColor = UIColor(white: 1.0, alpha: 0.9)
+        material.diffuse.contents = snowColor
+        material.emission.contents = snowColor
+        material.transparent.contents = snowColor
         material.lightingModel = .constant
+        material.transparencyMode = .rgbZero
         
         geometry.materials = [material]
         
@@ -47,59 +51,58 @@ class RenderingEngine {
         
         return node
     }
-
+    
     func setupScene() {
         let scene = SCNScene()
         
-        // 최소한의 조명만 사용
+        // 은은한 환경광 설정
         let ambientLight = SCNNode()
         ambientLight.light = SCNLight()
         ambientLight.light?.type = .ambient
-        ambientLight.light?.intensity = 1000
+        ambientLight.light?.intensity = 700
         scene.rootNode.addChildNode(ambientLight)
         
         sceneView.scene = scene
         sceneView.autoenablesDefaultLighting = true
-        
-        // 디버깅 옵션 활성화
-        sceneView.debugOptions = [.showFeaturePoints]
     }
-
+    
     private func renderParticles(_ particles: [ParticleFrame.Particle]) {
-        // 기존 노드 제거
-        particleNodes.forEach { $0.removeFromParentNode() }
-        particleNodes.removeAll()
-        
-        // 새 노드 추가
-        for particle in particles {
+        // 노드 수 관리
+        while particleNodes.count < particles.count {
             let node = createParticleNode()
+            particleNodes.append(node)
+            sceneView.scene.rootNode.addChildNode(node)
+        }
+        
+        while particleNodes.count > particles.count {
+            if let node = particleNodes.popLast() {
+                node.removeFromParentNode()
+            }
+        }
+        
+        // 파티클 업데이트
+        for (index, particle) in particles.enumerated() {
+            let node = particleNodes[index]
+            
+            // 위치 업데이트
             node.position = SCNVector3(
                 particle.position.x,
                 particle.position.y,
                 particle.position.z
             )
-            particleNodes.append(node)
-            sceneView.scene.rootNode.addChildNode(node)
-        }
-    }
-    
-    private func updateParticleNode(_ node: SCNNode, with particle: ParticleFrame.Particle) {
-        // 위치 업데이트
-        node.position = SCNVector3(
-            particle.position.x,
-            particle.position.y,
-            particle.position.z
-        )
-        
-        // 크기 업데이트 (생명 주기에 따라 크기 변화)
-        let scale = particle.size * (particle.lifetime / 2.0)  // 수명이 줄어들수록 작아짐
-        node.scale = SCNVector3(scale, scale, scale)
-        
-        // 투명도 업데이트 (생명 주기에 따라 투명해짐)
-        if let material = node.geometry?.materials.first {
-            let alpha = CGFloat(particle.lifetime / 2.0)
-            material.diffuse.contents = UIColor(red: 1.0, green: 0.0, blue: 0.0, alpha: alpha)
-            material.emission.contents = UIColor(red: 1.0, green: 0.0, blue: 0.0, alpha: alpha)
+            
+            // 크기 업데이트
+            let scale = particle.size
+            node.scale = SCNVector3(scale, scale, scale)
+            
+            // 회전 업데이트
+            node.eulerAngles.z = particle.rotation
+            
+            // 투명도 업데이트
+            if let material = node.geometry?.materials.first {
+                let alpha = CGFloat(min(1.0, particle.lifetime))
+                material.transparency = 1 - alpha
+            }
         }
     }
 }

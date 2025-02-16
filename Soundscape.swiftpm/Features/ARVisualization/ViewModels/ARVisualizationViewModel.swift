@@ -22,7 +22,6 @@ final class ARVisualizationViewModel: ObservableObject {
     private var cancellables = Set<AnyCancellable>()
     
     func setARView(_ arView: ARSCNView) {
-        print("Setting up RenderingEngine with ARSCNView")
         self.renderingEngine = RenderingEngine(sceneView: arView)
         
         // Particle System 설정
@@ -44,7 +43,6 @@ final class ARVisualizationViewModel: ObservableObject {
         
         // RenderingEngine 시작
         renderingEngine?.startRendering(particleStream: handledParticleStream)
-        print("Rendering engine started")
     }
     
     func startCapture() {
