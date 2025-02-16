@@ -5,50 +5,46 @@
 //  Created by 이종선 on 2/12/25.
 //
 
+import ARKit
 import Combine
 import Foundation
 
+@MainActor
 final class ARVisualizationViewModel: ObservableObject {
-    @Published private(set) var currentAmplitude: Float = 0
-    @Published private(set) var currentARData: ARData?
-    
     @Published private(set) var error: Error?
     @Published var showErrorAlert: Bool = false
     
     private let audioSystem = AudioSystem()
     let arSystem = ARSystem()
+    private let particleSystem = ParticleSystem()
+    private var renderingEngine: RenderingEngine?
+    
     private var cancellables = Set<AnyCancellable>()
     
-    init(){
-        // 오디오 스트림 구독
-        audioSystem.audioStream
-            .receive(on: DispatchQueue.main)
-            .sink(
-                receiveCompletion: { [weak self] completion in
-                    if case .failure(let error) = completion {
-                        self?.error = error
-                    }
-            },
-            receiveValue: { [weak self] audioData in
-                self?.currentAmplitude = audioData.amplitude
-                }
-            )
-            .store(in: &cancellables)
+    func setARView(_ arView: ARSCNView) {
+        print("Setting up RenderingEngine with ARSCNView")
+        self.renderingEngine = RenderingEngine(sceneView: arView)
         
-        // AR 스트림 구독
-        arSystem.arStream
-            .receive(on: DispatchQueue.main)
-            .sink(
-                receiveCompletion: { [weak self] completion in
-                    if case .failure(let error) = completion {
-                        self?.error = error
-                    }
-                },
-                receiveValue: { [weak self] arData in
-                    self?.currentARData = arData
+        // Particle System 설정
+        particleSystem.start(
+            audioStream: audioSystem.audioStream.mapError { $0 as Error }.eraseToAnyPublisher(),
+            arStream: arSystem.arStream.eraseToAnyPublisher()
+        )
+        
+        // 파티클 스트림 처리
+        let handledParticleStream = particleSystem.particlePublisher
+            .catch { [weak self] error -> AnyPublisher<ParticleFrame, Never> in
+                DispatchQueue.main.async {
+                    self?.error = error
+                    self?.showErrorAlert = true
                 }
-            )
-            .store(in: &cancellables)
+                return Empty().eraseToAnyPublisher()
+            }
+            .eraseToAnyPublisher()
+        
+        // RenderingEngine 시작
+        renderingEngine?.startRendering(particleStream: handledParticleStream)
+        print("Rendering engine started")
     }
     
     func startCapture() {

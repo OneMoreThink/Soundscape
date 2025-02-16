@@ -10,11 +10,19 @@ import SwiftUI
 
 struct ARViewContainer: UIViewRepresentable {
     let session: ARSession
+    let onARViewCreated: (ARSCNView) -> Void  // ARSCNView 생성 시 콜백 추가
     
     func makeUIView(context: Context) -> ARSCNView {
         let arView = ARSCNView(frame: .zero)
         arView.session = session
         arView.automaticallyUpdatesLighting = true
+        
+        // 디버깅을 위한 옵션 활성화
+        // arView.debugOptions = [.showFeaturePoints, .showWorldOrigin]
+        
+        // 뷰가 생성되면 콜백 호출
+        onARViewCreated(arView)
+        
         return arView
     }
     
