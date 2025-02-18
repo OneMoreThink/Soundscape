@@ -62,10 +62,13 @@ struct FrequencyData {
     private static func calculateBandEnergies(magnitudes: [Float], frequencies: [Float]) -> [Float] {
         return bands.map { band in
             var energy: Float = 0
+            var count: Float = 0
             for (i, freq) in frequencies.enumerated() where freq >= band.range.lowerBound && freq <= band.range.upperBound {
-                energy += magnitudes[i]
+                energy += max(0, magnitudes[i]) // 음수 에너지 방지
+                count += 1
             }
-            return energy
+            // 평균 에너지를 반환하고, 0과 1 사이로 정규화
+            return count > 0 ? min(max(energy / count, 0), 1) : 0
         }
     }
 }
@@ -146,10 +149,6 @@ final class AudioSystem {
             guard let self = self,
             let channelData = buffer.floatChannelData?[0]
             else { return }
-            
-            // 디버깅을 위한 로그 추가
-            print("Buffer frame length: \(buffer.frameLength)")
-            print("FFT size: \(self.fftSize)")
             
             // 입력 데이터 준비
             var inputData = [Float](repeating: 0, count: self.fftSize)
