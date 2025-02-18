@@ -37,7 +37,9 @@ final class ARSystem: NSObject {
         configuration.planeDetection = [.horizontal, .vertical]
         configuration.environmentTexturing = .automatic
         
-        session.run(configuration)
+        // 세션 시작 전에 리셋
+        session.pause()
+        session.run(configuration, options: [.resetTracking, .removeExistingAnchors])
     }
     
     func stop() {
