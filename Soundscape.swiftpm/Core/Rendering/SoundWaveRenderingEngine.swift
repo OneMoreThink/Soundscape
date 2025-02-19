@@ -144,6 +144,14 @@ class SphericalWaveEmitter: SCNNode {
         system.particleVelocity = 2.0
         system.particleVelocityVariation = 0.5
         system.stretchFactor = 0.1
+        
+        // 부드러운 파티클을 위한 설정
+        system.particleImage = generateSmoothParticle()
+        system.blendMode = .additive  // 부드러운 블렌딩
+        system.sortingMode = .distance  // 깊이에 따른 정렬
+        system.isLightingEnabled = false  // 조명 효과 비활성화
+        
+        // 색상 설정
         system.particleColor = UIColor(
             red: CGFloat(currentProperties.color.x),
             green: CGFloat(currentProperties.color.y),
@@ -151,13 +159,49 @@ class SphericalWaveEmitter: SCNNode {
             alpha: CGFloat(currentProperties.color.w)
         )
         
-        // 가속도 설정으로 파티클이 주변으로 퍼지도록
+        // 가속도 설정
         system.acceleration = SCNVector3(0, 0.2, 0)
         
-        // 파티클 크기 변화
+        // 크기 변화
         system.particleSizeVariation = size * 0.5
         
+        // 파티클 페이드아웃을 위한 알파 변화
+           let alphaSequence = SCNParticlePropertyController()
+           let animation = CAKeyframeAnimation()
+           animation.values = [0.0, 0.8, 0.0] as [NSNumber]  // NSNumber 배열로 명시적 타입 변환
+           animation.duration = lifetime
+           alphaSequence.animation = animation
+           system.propertyControllers = [SCNParticleSystem.ParticleProperty.opacity: alphaSequence]
+        
         return system
+    }
+
+    // 부드러운 원형 파티클 이미지 생성
+    private func generateSmoothParticle() -> UIImage {
+        let size = CGSize(width: 64, height: 64)
+        let renderer = UIGraphicsImageRenderer(size: size)
+        
+        let image = renderer.image { context in
+            let bounds = CGRect(origin: .zero, size: size)
+            let center = CGPoint(x: bounds.midX, y: bounds.midY)
+            let radius = min(bounds.width, bounds.height) / 2.0
+            
+            // 그라데이션 생성
+            let colors = [UIColor.white.cgColor, UIColor.clear.cgColor]
+            let gradient = CGGradient(colorsSpace: CGColorSpaceCreateDeviceRGB(),
+                                    colors: colors as CFArray,
+                                    locations: [0.0, 1.0])!
+            
+            // 원형 그라데이션 그리기
+            context.cgContext.drawRadialGradient(gradient,
+                                               startCenter: center,
+                                               startRadius: 0,
+                                               endCenter: center,
+                                               endRadius: radius,
+                                               options: .drawsBeforeStartLocation)
+        }
+        
+        return image
     }
     
     private func emitWaveFront() {
