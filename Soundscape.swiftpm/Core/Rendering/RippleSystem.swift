@@ -8,6 +8,7 @@
 import Combine
 import Foundation
 import simd
+import SceneKit
 
 struct RippleFrame {
     let ripples: [RippleProperties]
@@ -51,9 +52,14 @@ class RippleSystem {
     private var ripples: [RippleProperties] = []
     private let rippleSubject = PassthroughSubject<RippleFrame, Error>()
     private var cancellables = Set<AnyCancellable>()
+    private var soundSourcePosition: SCNVector3 = SCNVector3(0, -0.5, -2)
     
     var ripplePublisher: AnyPublisher<RippleFrame, Error> {
         rippleSubject.eraseToAnyPublisher()
+    }
+    
+    func updateSoundSourcePosition(_ position: SCNVector3) {
+        soundSourcePosition = position
     }
     
     func start(frequencyStream: AnyPublisher<FrequencyData, Error>,
@@ -70,20 +76,17 @@ class RippleSystem {
     }
     
     private func updateRipples(frequency: FrequencyData, ar: ARData) {
-        let cameraTransform = ar.cameraTransform
-        let cameraPos = SIMD3<Float>(
-            cameraTransform.columns.3.x,
-            cameraTransform.columns.3.y,
-            cameraTransform.columns.3.z
-        )
-        
         var newRipples: [RippleProperties] = []
         
         // 각 주파수 대역에 대해 리플 생성
         for (index, energy) in frequency.bandEnergies.enumerated() {
             if energy > 0.1 { // 에너지가 임계값을 넘는 경우에만 리플 생성
                 let ripple = RippleProperties(
-                    position: cameraPos + SIMD3<Float>(0, -0.5, -2),
+                    position: SIMD3<Float>(
+                        soundSourcePosition.x,
+                        soundSourcePosition.y,
+                        soundSourcePosition.z
+                    ),
                     bandIndex: index,
                     energy: energy,
                     frequency: frequency.dominantFrequency

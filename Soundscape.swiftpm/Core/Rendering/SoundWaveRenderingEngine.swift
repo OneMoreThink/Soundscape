@@ -87,12 +87,32 @@ class SphericalWaveEmitter: SCNNode {
     }
     
     private func setupEmitter() {
-        // 공간상의 위치 설정
+        // 구체의 위치를 RippleProperties의 position으로 설정
         self.position = SCNVector3(
-            x: 0,
-            y: Float(currentProperties.bandIndex) * 0.4 - 1.0, // 약간 아래에서 시작
-            z: -3.0
+            x: currentProperties.position.x,
+            y: currentProperties.position.y,
+            z: currentProperties.position.z
         )
+    }
+    
+    func updateEnergy(_ properties: RippleProperties) {
+        self.currentProperties = properties
+        
+        // 위치 업데이트
+        self.position = SCNVector3(
+            x: properties.position.x,
+            y: properties.position.y,
+            z: properties.position.z
+        )
+        
+        let currentTime = CACurrentMediaTime()
+        if currentTime - lastEmissionTime >= emissionInterval && currentProperties.energy > 0.1 {
+            emitWaveFront()
+            lastEmissionTime = currentTime
+            
+            // 파티클 시스템 업데이트
+            updateParticleSystems()
+        }
     }
     
     private func setupParticleSystems() {
@@ -285,18 +305,6 @@ class SphericalWaveEmitter: SCNNode {
         node.runAction(sequence)
     }
     
-    func updateEnergy(_ properties: RippleProperties) {
-        self.currentProperties = properties
-        
-        let currentTime = CACurrentMediaTime()
-        if currentTime - lastEmissionTime >= emissionInterval && currentProperties.energy > 0.1 {
-            emitWaveFront()
-            lastEmissionTime = currentTime
-            
-            // 파티클 시스템 업데이트
-            updateParticleSystems()
-        }
-    }
     
     private func updateParticleSystems() {
         for node in waveParticleSystems {

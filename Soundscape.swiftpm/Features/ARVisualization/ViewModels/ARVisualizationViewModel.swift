@@ -18,11 +18,17 @@ final class ARVisualizationViewModel: ObservableObject {
     let arSystem = ARSystem()
     private let rippleSystem = RippleSystem()
     private var renderingEngine: SoundWaveRenderingEngine?
+    private var soundSourceController: SoundSourceController?
     
     private var cancellables = Set<AnyCancellable>()
     
     func setARView(_ arView: ARSCNView) {
         self.renderingEngine = SoundWaveRenderingEngine(sceneView: arView)
+        
+        // 사운드 소스 컨트롤러 설정
+        self.soundSourceController = arView.addSoundSourceController { [weak self] position in
+            self?.rippleSystem.updateSoundSourcePosition(position)
+        }
         
         // Ripple System 설정
         rippleSystem.start(
