@@ -9,6 +9,8 @@ import SwiftUI
 
 struct ARVisualizationView: View {
     @StateObject private var viewModel: ARVisualizationViewModel
+    @AppStorage("hasSeenOnboarding") private var hasSeenOnboarding = false
+    @State private var showOnboarding = false
     
     init() {
         // ARSCNView 생성을 위한 클로저 준비
@@ -25,10 +27,19 @@ struct ARVisualizationView: View {
             .edgesIgnoringSafeArea(.all)
         }
         .onAppear {
+            if !hasSeenOnboarding {
+                showOnboarding = true
+            }
             viewModel.startCapture()
         }
         .onDisappear {
             viewModel.stopCapture()
+        }
+        .fullScreenCover(isPresented: $showOnboarding) {
+            OnboardingView()
+                .onDisappear {
+                    hasSeenOnboarding = true
+                }
         }
     }
 }
