@@ -47,9 +47,9 @@ class SoundSourceController: SCNNode {
             guard let lastPosition = lastPanPosition else { return }
             let currentPosition = gesture.location(in: view)
             
-            // 화면 상의 이동 거리 계산
+            // 화면 상의 이동 거리 계산 - 방향 수정
             let deltaX = Float(currentPosition.x - lastPosition.x) * 0.01
-            let deltaY = Float(lastPosition.y - currentPosition.y) * 0.01
+            let deltaY = Float(lastPosition.y - currentPosition.y) * 0.01  // y축 방향 다시 반전
             
             // 현재 카메라의 방향을 기준으로 이동 벡터 계산
             guard let camera = view.pointOfView else { return }
@@ -103,9 +103,9 @@ class SoundSourceController: SCNNode {
 extension SCNNode {
     var rightVector: SCNVector3 {
         return SCNVector3(
-            -simdTransform.columns.0[0],
-            -simdTransform.columns.0[1],
-            -simdTransform.columns.0[2]
+            simdTransform.columns.0[0],  // 마이너스 제거
+            simdTransform.columns.0[1],  // 마이너스 제거
+            simdTransform.columns.0[2]   // 마이너스 제거
         )
     }
     
