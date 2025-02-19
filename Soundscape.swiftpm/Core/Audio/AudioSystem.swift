@@ -12,17 +12,72 @@ import Combine
 struct FrequencyBand {
     let range: ClosedRange<Float>
     let name: String
+    let description: String  // 각 주파수 대역의 특성 설명 추가
 }
 
 /// FFT 결과로 각 Frequency 별 magnitude 값
 struct FrequencyData {
     static let bands: [FrequencyBand] = [
-        FrequencyBand(range: 20...100, name: "Sub Bass"),
-        FrequencyBand(range: 100...250, name: "Bass"),
-        FrequencyBand(range: 250...500, name: "Low Mids"),
-        FrequencyBand(range: 500...2000, name: "Mids"),
-        FrequencyBand(range: 2000...4000, name: "High Mids"),
-        FrequencyBand(range: 4000...20000, name: "Highs")
+        FrequencyBand(
+            range: 20...40,
+            name: "Sub Bass Low",
+            description: "가장 낮은 저음역대, 킥드럼의 진동감"
+        ),
+        FrequencyBand(
+            range: 40...60,
+            name: "Sub Bass High",
+            description: "베이스 라인의 기초, 깊은 울림"
+        ),
+        FrequencyBand(
+            range: 60...120,
+            name: "Bass Low",
+            description: "베이스 기타, 킥드럼의 주요 음역"
+        ),
+        FrequencyBand(
+            range: 120...250,
+            name: "Bass High",
+            description: "베이스의 하모닉스, 남성 목소리의 기초"
+        ),
+        FrequencyBand(
+            range: 250...500,
+            name: "Low Mids",
+            description: "기타, 피아노의 낮은 음역, 보컬의 두께감"
+        ),
+        FrequencyBand(
+            range: 500...1000,
+            name: "Mid Low",
+            description: "보컬의 기본 주파수, 어쿠스틱 악기의 바디감"
+        ),
+        FrequencyBand(
+            range: 1000...2000,
+            name: "Mid High",
+            description: "보컬의 명료도, 기타의 선명도"
+        ),
+        FrequencyBand(
+            range: 2000...4000,
+            name: "High Mids",
+            description: "보컬의 선명도, 현악기의 질감"
+        ),
+        FrequencyBand(
+            range: 4000...6000,
+            name: "Presence",
+            description: "보컬의 치찰음, 심벌즈의 광채"
+        ),
+        FrequencyBand(
+            range: 6000...10000,
+            name: "Brilliance Low",
+            description: "하이햇, 심벌즈의 디테일"
+        ),
+        FrequencyBand(
+            range: 10000...16000,
+            name: "Brilliance High",
+            description: "공기감, 전체적인 선명도"
+        ),
+        FrequencyBand(
+            range: 16000...20000,
+            name: "Air",
+            description: "최상위 고역대, 공간감과 밝기"
+        )
     ]
     
     let rawMagnitudes: [Float]      // FFT 결과의 원본 magnitude 값들
@@ -31,7 +86,7 @@ struct FrequencyData {
     let bandEnergies: [Float]       // 주파수 대역별 에너지 값
     let dominantFrequency: Float    // 가장 강한 주파수
     let timestamp: TimeInterval
-    
+
     init(magnitudes: [Float], frequencies: [Float], timestamp: TimeInterval) {
         self.rawMagnitudes = magnitudes
         self.frequencies = frequencies
@@ -50,7 +105,7 @@ struct FrequencyData {
             frequencies: frequencies
         )
         
-        // 지배적 주파수 찾기
+        // 지배적 주파수 찾기 (가장 강한 에너지를 가진 주파수)
         if let maxIndex = normalizedMagnitudes.enumerated()
             .max(by: { $0.element < $1.element })?.offset {
             self.dominantFrequency = frequencies[maxIndex]
@@ -64,12 +119,35 @@ struct FrequencyData {
             var energy: Float = 0
             var count: Float = 0
             for (i, freq) in frequencies.enumerated() where freq >= band.range.lowerBound && freq <= band.range.upperBound {
-                energy += max(0, magnitudes[i]) // 음수 에너지 방지
+                energy += max(0, magnitudes[i])
                 count += 1
             }
-            // 평균 에너지를 반환하고, 0과 1 사이로 정규화
             return count > 0 ? min(max(energy / count, 0), 1) : 0
         }
+    }
+    
+    // 특정 주파수 대역의 평균 에너지를 계산하는 헬퍼 메서드
+    func getAverageEnergy(for bandIndices: Range<Int>) -> Float {
+        let selectedEnergies = bandIndices.map { bandEnergies[$0] }
+        return selectedEnergies.reduce(0, +) / Float(bandIndices.count)
+    }
+    
+    // 주파수 대역 그룹의 특성을 분석하는 메서드들
+    var bassEnergy: Float {
+        getAverageEnergy(for: 0..<4)  // Sub Bass와 Bass 대역
+    }
+    
+    var midEnergy: Float {
+        getAverageEnergy(for: 4..<8)  // Low Mids에서 High Mids까지
+    }
+    
+    var highEnergy: Float {
+        getAverageEnergy(for: 8..<12)  // Presence에서 Air까지
+    }
+    
+    // 전체 스펙트럼의 균형을 분석하는 메서드
+    var spectralBalance: (bass: Float, mid: Float, high: Float) {
+        (bassEnergy, midEnergy, highEnergy)
     }
 }
 
