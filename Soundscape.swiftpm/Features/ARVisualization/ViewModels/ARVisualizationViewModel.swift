@@ -17,12 +17,12 @@ final class ARVisualizationViewModel: ObservableObject {
     private let audioSystem = AudioSystem()
     let arSystem = ARSystem()
     private let rippleSystem = RippleSystem()
-    private var renderingEngine: RippleRenderingEngine?
+    private var renderingEngine: SoundWaveRenderingEngine?
     
     private var cancellables = Set<AnyCancellable>()
     
     func setARView(_ arView: ARSCNView) {
-        self.renderingEngine = RippleRenderingEngine(sceneView: arView)
+        self.renderingEngine = SoundWaveRenderingEngine(sceneView: arView)
         
         // Ripple System 설정
         rippleSystem.start(
