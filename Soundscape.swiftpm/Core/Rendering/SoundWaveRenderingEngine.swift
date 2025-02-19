@@ -137,13 +137,20 @@ class SphericalWaveEmitter: SCNNode {
         // 기본 설정
         system.particleSize = size
         system.particleLifeSpan = lifetime
-        system.emitterShape = SCNSphere(radius: 0.1)
+        
+        // 3D 구형 방출을 위한 설정
+        system.emitterShape = SCNSphere(radius: 0.05)  // 더 작은 방출 영역
         system.birthRate = 1000
-        system.spreadingAngle = spread
+        system.spreadingAngle = 180  // 완전한 구형 분포
+        system.emittingDirection = SCNVector3(0, 0, 1)  // 전방향
         system.speedFactor = speedFactor
-        system.particleVelocity = 2.0
-        system.particleVelocityVariation = 0.5
-        system.stretchFactor = 0.1
+        system.particleVelocity = 1.5  // 속도 감소
+        system.particleVelocityVariation = 1.0  // 더 다양한 속도
+        system.stretchFactor = 0.0  // 스트레치 효과 제거
+        
+        // 랜덤한 방향성을 위한 추가 설정
+        system.particleAngleVariation = CGFloat.pi  // 회전 변화
+        system.particleAngularVelocity = 0.5  // 회전 속도
         
         // 부드러운 파티클을 위한 설정
         system.particleImage = generateSmoothParticle()
@@ -166,12 +173,12 @@ class SphericalWaveEmitter: SCNNode {
         system.particleSizeVariation = size * 0.5
         
         // 파티클 페이드아웃을 위한 알파 변화
-           let alphaSequence = SCNParticlePropertyController()
-           let animation = CAKeyframeAnimation()
-           animation.values = [0.0, 0.8, 0.0] as [NSNumber]  // NSNumber 배열로 명시적 타입 변환
-           animation.duration = lifetime
-           alphaSequence.animation = animation
-           system.propertyControllers = [SCNParticleSystem.ParticleProperty.opacity: alphaSequence]
+        let alphaSequence = SCNParticlePropertyController()
+        let animation = CAKeyframeAnimation()
+        animation.values = [0.0, 0.8, 0.0] as [NSNumber]  // NSNumber 배열로 명시적 타입 변환
+        animation.duration = lifetime
+        alphaSequence.animation = animation
+        system.propertyControllers = [SCNParticleSystem.ParticleProperty.opacity: alphaSequence]
         
         return system
     }
