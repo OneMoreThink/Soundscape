@@ -6,7 +6,6 @@
 //
 
 import SwiftUI
-import SwiftUI
 
 struct OnboardingView: View {
     @Environment(\.dismiss) private var dismiss
@@ -26,7 +25,7 @@ struct OnboardingView: View {
                         .multilineTextAlignment(.center)
                         .frame(maxWidth: .infinity)
                     
-                    Text("Transform your space into an immersive audio-visual experience")
+                    Text("See and feel your music in augmented reality")
                         .font(.system(size: isIPad ? 20 : 17))
                         .multilineTextAlignment(.center)
                         .foregroundStyle(.secondary)
@@ -34,38 +33,24 @@ struct OnboardingView: View {
                     
                     VStack(alignment: .leading, spacing: 24) {
                         FeatureRow(
-                            symbolName: "waveform.circle.fill",
-                            title: "Real-time Sound Visualization",
-                            description: "See sound waves come to life with beautiful 3D ripples that respond to different frequencies",
+                            symbolName: "speaker.wave.3.fill",
+                            title: "3D Sound Visualization",
+                            description: "Watch as your music comes to life with colorful waves and particles in your space",
                             color: .purple
                         )
                         
                         FeatureRow(
-                            symbolName: "speaker.wave.3.fill",
-                            title: "Frequency Spectrum Display",
-                            description: "Watch as bass, mid, and high frequencies create unique visual patterns with distinct colors",
+                            symbolName: "cube.transparent.fill",
+                            title: "Place Sound Anywhere",
+                            description: "Drag and position the sound source freely in your environment",
                             color: .blue
                         )
                         
                         FeatureRow(
-                            symbolName: "cube.transparent.fill",
-                            title: "AR Sound Source",
-                            description: "Place and move the sound source anywhere in your space - walls, tables, or mid-air",
+                            symbolName: "waveform.circle.fill",
+                            title: "Frequency-Based Effects",
+                            description: "Different colors and patterns react to bass, mid, and high frequencies",
                             color: .orange
-                        )
-                        
-                        FeatureRow(
-                            symbolName: "sparkles.square.filled.on.square",
-                            title: "Dynamic Effects",
-                            description: "Experience particle effects and wave patterns that change based on sound intensity and frequency",
-                            color: .green
-                        )
-                        
-                        FeatureRow(
-                            symbolName: "arrow.3.trianglepath",
-                            title: "Interactive Experience",
-                            description: "Move around to explore the sound visualization from different angles in your space",
-                            color: .red
                         )
                     }
                     .frame(maxWidth: isIPad ? 600 : .infinity)
@@ -75,7 +60,7 @@ struct OnboardingView: View {
                         Button(action: {
                             dismiss()
                         }) {
-                            Text("Start Exploring")
+                            Text("Start Experience")
                                 .font(.headline)
                                 .frame(maxWidth: isIPad ? 400 : .infinity)
                                 .padding()
