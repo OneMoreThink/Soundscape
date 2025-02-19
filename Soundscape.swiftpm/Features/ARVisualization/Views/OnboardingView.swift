@@ -6,6 +6,8 @@
 //
 
 import SwiftUI
+import SwiftUI
+
 struct OnboardingView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
@@ -18,53 +20,76 @@ struct OnboardingView: View {
         GeometryReader { geometry in
             ScrollView {
                 VStack(spacing: 32) {
-                    Text("Experience Sound Visualization")
+                    Text("Sound Waves in AR")
                         .font(.system(size: isIPad ? 46 : 34, weight: .bold))
                         .padding(.top, 32)
                         .multilineTextAlignment(.center)
-                        .frame(maxWidth: .infinity) // 텍스트 중앙 정렬을 위해 추가
+                        .frame(maxWidth: .infinity)
+                    
+                    Text("Transform your space into an immersive audio-visual experience")
+                        .font(.system(size: isIPad ? 20 : 17))
+                        .multilineTextAlignment(.center)
+                        .foregroundStyle(.secondary)
+                        .padding(.horizontal)
                     
                     VStack(alignment: .leading, spacing: 24) {
                         FeatureRow(
-                            symbolName: "ear.and.waveform",
-                            title: "Audio Visualization",
-                            description: "Experience sound in a whole new visual dimension",
+                            symbolName: "waveform.circle.fill",
+                            title: "Real-time Sound Visualization",
+                            description: "See sound waves come to life with beautiful 3D ripples that respond to different frequencies",
                             color: .purple
                         )
                         
                         FeatureRow(
-                            symbolName: "arrow.up.and.down.and.arrow.left.and.right",
-                            title: "Free Positioning",
-                            description: "Place the sound source anywhere in your space",
+                            symbolName: "speaker.wave.3.fill",
+                            title: "Frequency Spectrum Display",
+                            description: "Watch as bass, mid, and high frequencies create unique visual patterns with distinct colors",
                             color: .blue
                         )
                         
                         FeatureRow(
-                            symbolName: "paintpalette.fill",
-                            title: "Rich Visual Effects",
-                            description: "Watch as different frequencies create unique patterns",
+                            symbolName: "cube.transparent.fill",
+                            title: "AR Sound Source",
+                            description: "Place and move the sound source anywhere in your space - walls, tables, or mid-air",
                             color: .orange
+                        )
+                        
+                        FeatureRow(
+                            symbolName: "sparkles.square.filled.on.square",
+                            title: "Dynamic Effects",
+                            description: "Experience particle effects and wave patterns that change based on sound intensity and frequency",
+                            color: .green
+                        )
+                        
+                        FeatureRow(
+                            symbolName: "arrow.3.trianglepath",
+                            title: "Interactive Experience",
+                            description: "Move around to explore the sound visualization from different angles in your space",
+                            color: .red
                         )
                     }
                     .frame(maxWidth: isIPad ? 600 : .infinity)
                     .padding(.bottom)
                     
-                    Button(action: {
-                        dismiss()
-                    }) {
-                        Text("Get Started")
-                            .font(.headline)
-                            .frame(maxWidth: isIPad ? 400 : .infinity)
-                            .padding()
-                            .background(Color.blue)
-                            .foregroundColor(.white)
-                            .clipShape(RoundedRectangle(cornerRadius: 12))
+                    VStack(spacing: 16) {
+                        Button(action: {
+                            dismiss()
+                        }) {
+                            Text("Start Exploring")
+                                .font(.headline)
+                                .frame(maxWidth: isIPad ? 400 : .infinity)
+                                .padding()
+                                .background(Color.blue)
+                                .foregroundColor(.white)
+                                .clipShape(RoundedRectangle(cornerRadius: 12))
+                        }
+                        
                     }
                     .padding(.bottom, 32)
                 }
                 .frame(minHeight: geometry.size.height)
-                .frame(maxWidth: .infinity) // VStack을 전체 너비로 확장
-                .padding(.horizontal, 24) // 패딩을 VStack 전체에 적용
+                .frame(maxWidth: .infinity)
+                .padding(.horizontal, 24)
             }
         }
         .background(Color(uiColor: .systemBackground))
@@ -111,6 +136,6 @@ struct FeatureRow: View {
     }
 }
 
-#Preview{
+#Preview {
     OnboardingView()
 }
