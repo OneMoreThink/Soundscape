@@ -1,19 +1,15 @@
 import SwiftUI
 
 struct ContentView: View {
-    @StateObject private var permissionManager = PermissionManager()
+    @StateObject private var vm = ARVisualizationViewModel()
     
     var body: some View {
-        Group {
-            if permissionManager.hasRequiredPermissions {
-                ARVisualizationView()
-            } else {
-                PermissionStatusView(permissionManager: permissionManager)
+        ARVisualizationView(viewModel: vm)
+            .onAppear {
+                vm.startCapture()
             }
-        }
-        .task {
-            permissionManager.checkPermissionStatus()
-            await permissionManager.requestPermissions()
-        }
+            .onDisappear{
+                vm.stopCapture()
+            }
     }
 }
