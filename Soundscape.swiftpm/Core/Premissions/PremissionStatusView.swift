@@ -9,6 +9,7 @@ import SwiftUI
 
 struct PermissionStatusView: View {
     @ObservedObject var permissionManager: PermissionManager
+    let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
     
     var body: some View {
         VStack(spacing: 24) {
@@ -40,6 +41,9 @@ struct PermissionStatusView: View {
                 )
             }
             .padding(.horizontal)
+        }
+        .onReceive(timer) { _ in
+            permissionManager.checkPermissionStatus()
         }
     }
 }
