@@ -17,9 +17,6 @@ struct ARViewContainer: UIViewRepresentable {
         arView.session = session
         arView.automaticallyUpdatesLighting = true
         
-        // 디버깅을 위한 옵션 활성화
-        // arView.debugOptions = [.showFeaturePoints, .showWorldOrigin]
-        
         // 뷰가 생성되면 콜백 호출
         onARViewCreated(arView)
         

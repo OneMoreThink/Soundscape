@@ -16,23 +16,43 @@ final class ARVisualizationViewModel: ObservableObject {
     
     private let audioSystem = AudioSystem()
     let arSystem = ARSystem()
-    private let particleSystem = ParticleSystem()
-    private var renderingEngine: RenderingEngine?
+    private let rippleSystem = RippleSystem()
+    private var renderingEngine: SoundWaveRenderingEngine?
+    private var soundSourceController: SoundSourceController?
     
     private var cancellables = Set<AnyCancellable>()
     
     func setARView(_ arView: ARSCNView) {
-        self.renderingEngine = RenderingEngine(sceneView: arView)
+        self.renderingEngine = SoundWaveRenderingEngine(sceneView: arView)
         
-        // Particle System 설정
-        particleSystem.start(
-            audioStream: audioSystem.audioStream.mapError { $0 as Error }.eraseToAnyPublisher(),
+        // 사운드 소스 컨트롤러 설정
+        self.soundSourceController = arView.addSoundSourceController { [weak self] position in
+            self?.rippleSystem.updateSoundSourcePosition(position)
+        }
+        
+        // 오디오 데이터 구독 설정
+        audioSystem.frequencyDataStream
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] completion in
+                if case .failure(let error) = completion {
+                    self?.error = error
+                    self?.showErrorAlert = true
+                }
+            } receiveValue: { [weak self] frequencyData in
+                // 사운드 소스 컨트롤러 업데이트
+                self?.soundSourceController?.updateWithFrequencyData(frequencyData)
+            }
+            .store(in: &cancellables)
+        
+        // Ripple System 설정
+        rippleSystem.start(
+            frequencyStream: audioSystem.frequencyDataStream,
             arStream: arSystem.arStream.eraseToAnyPublisher()
         )
         
-        // 파티클 스트림 처리
-        let handledParticleStream = particleSystem.particlePublisher
-            .catch { [weak self] error -> AnyPublisher<ParticleFrame, Never> in
+        // 리플 스트림 처리
+        let handledRippleStream = rippleSystem.ripplePublisher
+            .catch { [weak self] error -> AnyPublisher<RippleFrame, Never> in
                 DispatchQueue.main.async {
                     self?.error = error
                     self?.showErrorAlert = true
@@ -42,7 +62,7 @@ final class ARVisualizationViewModel: ObservableObject {
             .eraseToAnyPublisher()
         
         // RenderingEngine 시작
-        renderingEngine?.startRendering(particleStream: handledParticleStream)
+        renderingEngine?.startRendering(rippleStream: handledRippleStream)
     }
     
     func startCapture() {
@@ -51,6 +71,7 @@ final class ARVisualizationViewModel: ObservableObject {
             try arSystem.start()
         } catch {
             self.error = error
+            self.showErrorAlert = true
         }
     }
     
