@@ -1,2 +1,3 @@
-# 2025 Swift Student Challenge Winner Project (Soundscape)
+# Soundscape
+2025 Swift Student Challenge Winner Project 
 AR Sound Visualization Experience
